@@ -2,11 +2,9 @@
 #include <HTTPClient.h>
 #include <PubSubClient.h>
 
-// --- WiFi ---
 const char* ssid = "HH71V1_605F_2.4G";
 const char* password = "umGKtAby";
 
-// --- MQTT ---
 const char* mqtt_server = "test.mosquitto.org";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "test";
@@ -14,7 +12,6 @@ const char* mqtt_topic = "test";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// --- Funkcja połączenia z MQTT ---
 bool connectMQTT() {
   if (!client.connected()) {
     Serial.print("Connecting to MQTT...");
@@ -35,7 +32,6 @@ bool connectMQTT() {
 void setup() {
   Serial.begin(115200);
 
-  // --- Połączenie z WiFi ---
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -44,10 +40,8 @@ void setup() {
   }
   Serial.println("\nWiFi connected!");
 
-  // --- MQTT setup ---
   client.setServer(mqtt_server, mqtt_port);
 
-  // --- HTTP request i wysyłka JSON ---
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     http.begin("https://api.open-meteo.com/v1/forecast?latitude=50&longitude=20&current=temperature_2m");
@@ -58,7 +52,6 @@ void setup() {
       Serial.println("HTTP response:");
       Serial.println(payload);
 
-      // --- Połącz z MQTT ---
       if (connectMQTT()) {
         client.publish(mqtt_topic, payload.c_str());
         Serial.println("JSON wysłany na MQTT!");
@@ -75,7 +68,6 @@ void setup() {
 }
 
 void loop() {
-  // Obsługa MQTT loop
   if (client.connected()) {
     client.loop();
   }

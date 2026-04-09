@@ -4,22 +4,18 @@
 #include "BMP280.h"
 #include "Wire.h"
 
-// --- WiFi ---
 const char* ssid = "HH71V1_605F_2.4G";
 const char* password = "umGKtAby";
 
-// --- BMP280 ---
 #define P0 1013.25
 BMP280 bmp;
 
-// --- Timer do HTTP ---
 unsigned long lastHttp = 0;
 const unsigned long httpInterval = 60000; // 60 sekund
 
 void setup() {
   Serial.begin(115200);
 
-  // --- WiFi ---
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -28,7 +24,6 @@ void setup() {
   }
   Serial.println("\nWiFi connected!");
 
-  // --- BMP280 ---
   if(!bmp.begin()) {
     Serial.println("BMP init failed!");
     while(1);
@@ -39,7 +34,6 @@ void setup() {
 }
 
 void loop() {
-  // --- Odczyt BMP280 ---
   double T, P;
   char result = bmp.startMeasurment();
   if(result != 0) {
@@ -57,7 +51,6 @@ void loop() {
     Serial.println("BMP startMeasurment error.");
   }
 
-  // --- HTTP co określony czas ---
   if (millis() - lastHttp > httpInterval) {
     lastHttp = millis();
 
@@ -71,7 +64,7 @@ void loop() {
         Serial.println("HTTP Response:");
         Serial.println(payload);
 
-        // --- Parsowanie JSON ---
+        // parsowanie JSON 
         StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (!error) {

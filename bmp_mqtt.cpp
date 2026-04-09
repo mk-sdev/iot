@@ -7,11 +7,9 @@
 
 BMP280 bmp;
 
-// WiFi
 const char* ssid = "HH71V1_605F_2.4G";
 const char* password = "umGKtAby";
 
-// MQTT
 const char* server = "test.mosquitto.org";
 const int port = 1883;
 
@@ -32,7 +30,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setup() {
   Serial.begin(115200);
 
-  // --- BMP280 ---
   if (!bmp.begin()) {
     Serial.println("BMP init failed!");
     while (1);
@@ -40,7 +37,6 @@ void setup() {
   Serial.println("BMP init success!");
   bmp.setOversampling(4);
 
-  // --- WiFi ---
   WiFi.begin(ssid, password);
   Serial.print("Connecting WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -49,7 +45,6 @@ void setup() {
   }
   Serial.println("\nWiFi OK");
 
-  // --- MQTT ---
   client.setServer(server, port);
   client.setCallback(callback);
 
@@ -85,14 +80,12 @@ void loop() {
     if (result != 0) {
       double A = bmp.altitude(P, P0);
 
-      // --- Serial ---
       Serial.print("T = "); Serial.print(T, 2); Serial.print(" C ");
       Serial.print("P = "); Serial.print(P, 2); Serial.print(" mBar ");
       Serial.print("A = "); Serial.print(A, 2); Serial.println(" m");
 
-      // --- MQTT (wysyłka) ---
       char tempStr[10];
-      dtostrf(T, 1, 2, tempStr); // konwersja double -> string
+      dtostrf(T, 1, 2, tempStr); // konwersja double na string
 
       client.publish("esp32/temperature", tempStr);
 

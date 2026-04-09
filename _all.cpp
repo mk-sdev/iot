@@ -5,11 +5,9 @@
 #include "BMP280.h"
 #include "Wire.h"
 
-// --- WiFi ---
 const char* ssid = "HH71V1_605F_2.4G";
 const char* password = "umGKtAby";
 
-// --- MQTT ---
 const char* mqtt_server = "test.mosquitto.org";
 const int mqtt_port = 1883;
 const char* topic_bmp = "test/bmp280";
@@ -18,15 +16,12 @@ const char* topic_api = "test/open-meteo";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// --- BMP280 ---
 #define P0 1013.25
 BMP280 bmp;
 
-// --- Timer do HTTP ---
 unsigned long lastHttp = 0;
 const unsigned long httpInterval = 60000; // 60 sekund
 
-// --- Funkcja połączenia z MQTT ---
 bool connectMQTT() {
   if (!client.connected()) {
     Serial.print("Connecting to MQTT...");
@@ -47,7 +42,6 @@ bool connectMQTT() {
 void setup() {
   Serial.begin(115200);
 
-  // --- WiFi ---
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -56,10 +50,8 @@ void setup() {
   }
   Serial.println("\nWiFi connected!");
 
-  // --- MQTT ---
   client.setServer(mqtt_server, mqtt_port);
 
-  // --- BMP280 ---
   if(!bmp.begin()) {
     Serial.println("BMP init failed!");
     while(1);
@@ -70,14 +62,12 @@ void setup() {
 }
 
 void loop() {
-  // --- MQTT loop ---
   if (client.connected()) {
     client.loop();
   } else {
     connectMQTT();
   }
 
-  // --- Odczyt BMP280 ---
   double T, P;
   char result = bmp.startMeasurment();
   if(result != 0) {
@@ -90,7 +80,6 @@ void loop() {
       Serial.print(" degC\tP = "); Serial.print(P, 2);
       Serial.print(" mBar\tA = "); Serial.print(A, 2); Serial.println(" m");
 
-      // --- Wysyłka na MQTT ---
       if(connectMQTT()){
         char buf[64];
         snprintf(buf, sizeof(buf), "{\"T\":%.2f,\"P\":%.2f,\"A\":%.2f}", T, P, A);
@@ -104,7 +93,6 @@ void loop() {
     Serial.println("BMP startMeasurment error.");
   }
 
-  // --- HTTP co określony czas ---
   if (millis() - lastHttp > httpInterval) {
     lastHttp = millis();
 
@@ -118,7 +106,7 @@ void loop() {
         Serial.println("HTTP Response:");
         Serial.println(payload);
 
-        // --- Parsowanie JSON ---
+        // parsowanie JSON 
         StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (!error) {
@@ -126,7 +114,6 @@ void loop() {
           Serial.print("API Temperature 2m: ");
           Serial.println(tempApi);
 
-          // --- Wysyłka na MQTT ---
           if(connectMQTT()){
             char tempStr[16];
             dtostrf(tempApi, 4, 1, tempStr);

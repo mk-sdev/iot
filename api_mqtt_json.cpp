@@ -3,11 +3,9 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-// --- WiFi ---
 const char* ssid = "HH71V1_605F_2.4G";
 const char* password = "umGKtAby";
 
-// --- MQTT ---
 const char* mqtt_server = "test.mosquitto.org";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "test";
@@ -15,7 +13,6 @@ const char* mqtt_topic = "test";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// --- Funkcja połączenia z MQTT ---
 bool connectMQTT() {
   if (!client.connected()) {
     Serial.print("Connecting to MQTT...");
@@ -36,7 +33,6 @@ bool connectMQTT() {
 void setup() {
   Serial.begin(115200);
 
-  // --- Połączenie z WiFi ---
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -45,10 +41,8 @@ void setup() {
   }
   Serial.println("\nWiFi connected!");
 
-  // --- MQTT setup ---
   client.setServer(mqtt_server, mqtt_port);
 
-  // --- HTTP request ---
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     http.begin("https://api.open-meteo.com/v1/forecast?latitude=50&longitude=20&current=temperature_2m");
@@ -59,7 +53,7 @@ void setup() {
       Serial.println("HTTP response:");
       Serial.println(payload);
 
-      // --- Parsowanie JSON ---
+      //  parsowanie JSON 
       StaticJsonDocument<1024> doc;
       DeserializationError error = deserializeJson(doc, payload);
 
@@ -68,7 +62,6 @@ void setup() {
         Serial.print("Temperature 2m: ");
         Serial.println(temp);
 
-        // --- Połączenie z MQTT i wysyłka ---
         if (connectMQTT()) {
           char tempStr[16];
           dtostrf(temp, 4, 1, tempStr);  // float -> string
@@ -93,7 +86,6 @@ void setup() {
 }
 
 void loop() {
-  // Obsługa MQTT loop
   if (client.connected()) {
     client.loop();
   }
