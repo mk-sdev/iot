@@ -1,0 +1,24 @@
+https://wokwi.com/projects/458211276037860353
+
+BMP280:
+chyba po prostu kopiujesz BMP280.cpp/h
+
+PING:
+tworzysz folder ESP32Ping a w nim pliki ESP32Ping.h/cp i ping.h/cpp
+
+MQTT:
+PubSubClient.cpp/h
+
+ArduinoJSON:
+w platform.ini dodajesz linię:
+lib_deps = bblanchon/ArduinoJson 
+
+HttpClient:
+nic nie trzeba pobierać, tylko pamiętać o ustawieniu SSID, hasła do wifi i URL strony z którą chcesz się łączyć
+
+
+mkdir -p Projects/test
+cp "Projects\test"/* Projects/test -r
+esptool.exe --chip esp32 --port COM5 --baud 115200 write-flash 0x10000 firmware.bin
+
+pobieranie z api temperatury, 

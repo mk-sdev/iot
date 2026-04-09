@@ -1,0 +1,45 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+// WiFi
+const char* ssid = "HH71V1_605F_2.4G";
+const char* password = "umGKtAby";
+
+void setup() {
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi connected!");
+
+  // TEST HTTP
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+
+    http.begin("https://api.open-meteo.com/v1/forecast?latitude=50&longitude=20&current=temperature_2m"); // testowy endpoint
+    int httpCode = http.GET();
+
+    if (httpCode > 0) {
+      Serial.print("HTTP code: ");
+      Serial.println(httpCode);
+
+      String payload = http.getString();
+      Serial.println("Response:");
+      Serial.println(payload);
+    } else {
+      Serial.print("Error: ");
+      Serial.println(httpCode);
+    }
+
+    http.end();
+  }
+}
+
+void loop() {
+}
